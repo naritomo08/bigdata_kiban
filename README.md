@@ -1,15 +1,23 @@
-# bigdata_kiban
+# Hadoop (BigTop) + Hive (PostgreSQL metastore) を Ubuntu 24.04 限定で構築する Ansible
 
-Hadoop (BigTop) + Hive (PostgreSQL metastore) を Ubuntu 24.04 限定で構築する Ansible 一式です。
+前に提示したHadoop/Hive構築についてまとまったため、
+ansibleで構築自動化させました。
 
-## Ubuntu 24.04 限定
+https://qiita.com/naritomo08/items/cf1d89b753a217617c09
+
+https://qiita.com/naritomo08/items/f68ccb8e9c0a59b9ba02
+
+## 前提
 site.yml と各 role の先頭で `assert` を行い、Ubuntu 24.04 以外では必ず失敗します。
+メモリは2GBあれば動きます。
 
 ## 事前準備
 ```bash
-git clone git@github.com:naritomo08/github_kiban.git
+git clone git@github.com:naritomo08/bigdata_kiban.git
 cd github_kiban
 ansible-galaxy collection install community.postgresql
+vi inventory
+→IP部分を変更する。
 ```
 
 ## 実行
@@ -122,4 +130,3 @@ State: FINISHED
 
 Logs に Exception がないこと
 ```
-
