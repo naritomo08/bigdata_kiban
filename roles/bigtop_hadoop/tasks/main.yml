@@ -9,6 +9,11 @@
       Detected: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
       (pkg_mgr={{ ansible_facts['pkg_mgr'] }}).
 
+- name: Restart systemd-timesyncd
+  ansible.builtin.systemd:
+    name: systemd-timesyncd
+    state: restarted
+
 - name: Add BigTop apt repo (bigtop.list)
   ansible.builtin.copy:
     dest: /etc/apt/sources.list.d/bigtop.list
