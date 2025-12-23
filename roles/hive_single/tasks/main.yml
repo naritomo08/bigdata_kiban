@@ -9,6 +9,17 @@
       Detected: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
       (pkg_mgr={{ ansible_facts['pkg_mgr'] }}).
 
+- name: Wait for dpkg/apt lock to be released
+  ansible.builtin.shell: |
+    set -e
+    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+      sleep 3
+    done
+    while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+      sleep 3
+    done
+  changed_when: false
+
 - name: Install PostgreSQL (metastore) + psycopg2
   ansible.builtin.apt:
     name:
