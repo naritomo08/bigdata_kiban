@@ -153,6 +153,21 @@
     - hadoop-hdfs-namenode
     - hadoop-hdfs-datanode
 
+- name: Wait for NameNode RPC port 9000
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 9000
+    delay: 2
+    timeout: 120
+
+- name: Wait for NameNode Web UI 9870 (optional)
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 9870
+    delay: 2
+    timeout: 120
+  ignore_errors: true
+
 - name: Create HDFS dirs for JobHistory and log aggregation
   become_user: "{{ hadoop_user }}"
   ansible.builtin.shell: |

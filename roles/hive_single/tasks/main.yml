@@ -60,6 +60,8 @@
     set -euo pipefail
     hdfs dfs -test -d {{ hive_warehouse_dir }} || hdfs dfs -mkdir -p {{ hive_warehouse_dir }}
     hdfs dfs -chmod 1777 {{ hive_warehouse_dir }}
+  args:
+    executable: /bin/bash
   changed_when: false
 
 - name: Install PostgreSQL JDBC driver

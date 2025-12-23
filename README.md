@@ -19,3 +19,106 @@ ansible-playbook -i inventory.ini site.yml
 
 ## 変数
 `group_vars/all.yml` を環境に合わせて調整してください（IP/ホスト名、BigTop repo URL、メモリ等）。
+
+## 動作確認(HDFS)
+
+```bash
+hdfs dfs -mkdir /input
+echo "hello hadoop hadoop yarn" | hdfs dfs -put - /input/test.txt
+
+hadoop jar /usr/lib/hadoop-mapreduce/hadoop-mapreduce-examples-3.3.6.jar \
+  wordcount \
+  -D mapreduce.map.memory.mb=256 \
+  -D mapreduce.reduce.memory.mb=256 \
+  -D yarn.app.mapreduce.am.resource.mb=512 \
+  -D mapreduce.map.java.opts="-Xmx200m" \
+  -D mapreduce.reduce.java.opts="-Xmx200m" \
+  -D yarn.app.mapreduce.am.command-opts="-Xmx400m" \
+  /input /output
+```
+
+結果確認：
+
+```bash
+hdfs dfs -cat /output/part-r-00000
+→それぞれの単語と数が出てくること。
+
+やり直す際は以下のコマンドを入れてまた実施する。
+hdfs dfs -rm -r -skipTrash /output
+```
+以下の管理画面が参照できること。
+
+| 管理画面 | URL |
+|-----|-----|
+|NameNode|http://ホストIPアドレス:9870|
+|DataNode|http://ホストIPアドレス:9864|
+|ResourceManager|http://ホストIPアドレス:8088|
+|NodeManager|http://ホストIPアドレス:8042|
+|JobHistory|http://ホストIPアドレス:19888|
+|TimelineService|http://ホストIPアドレス:8188|
+
+## 動作確認(Hive)
+
+### 1. Beeline 接続（メモリ制限付き）
+
+```bash
+sudo su - hadoop
+/usr/lib/hive/bin/beeline \
+  --hiveconf mapreduce.map.memory.mb=512 \
+  --hiveconf mapreduce.reduce.memory.mb=512 \
+  --hiveconf yarn.app.mapreduce.am.resource.mb=512 \
+  --hiveconf mapreduce.map.java.opts="-Xmx384m" \
+  --hiveconf mapreduce.reduce.java.opts="-Xmx384m" \
+  --hiveconf yarn.app.mapreduce.am.command-opts="-Xmx384m" \
+  -u 'jdbc:hive2://localhost:10000/default' \
+  -n hadoop
+```
+
+### 2. 実行エンジン確認
+
+```bash
+set hive.execution.engine;
+```
+
+結果：
+
+```bash
+hive.execution.engine=mr
+```
+
+### 3. テーブル作成・INSERT・SELECT
+
+```bash
+CREATE TABLE t1 (
+  col1 INT,
+  col2 STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '\t'
+STORED AS TEXTFILE;
+
+INSERT INTO t1 VALUES (1,'a'),(2,'b');
+
+SELECT * FROM t1;
+```
+
+結果：
+
+```bash
+1   a
+2   b
+```
+
+### 4. YARN UI での確認（成功の裏取り）
+
+```bash
+http://ホストIPアドレス:8088
+
+
+Application Type: MAPREDUCE
+
+State: FINISHED
+
+Logs に Exception がないこと
+```
+
