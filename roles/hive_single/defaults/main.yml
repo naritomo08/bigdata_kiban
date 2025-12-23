@@ -1,0 +1,20 @@
+hadoop_user: hadoop
+hadoop_group: hadoop
+
+hive_conf_dir: /etc/hive/conf
+hive_home: /usr/lib/hive
+
+metastore_host: localhost
+metastore_port: 5432
+metastore_db: metastore
+metastore_user: hive
+metastore_password: HiveStrongPassword
+
+hive_metastore_uri: thrift://127.0.0.1:9083
+hiveserver2_port: 10000
+hive_warehouse_dir: /user/hive/warehouse
+
+hive_packages:
+  - hive
+  - hive-metastore
+  - hive-server2
