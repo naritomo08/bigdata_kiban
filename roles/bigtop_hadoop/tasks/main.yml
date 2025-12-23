@@ -14,17 +14,6 @@
     name: systemd-timesyncd
     state: restarted
 
-- name: Wait for dpkg/apt lock to be released
-  ansible.builtin.shell: |
-    set -e
-    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
-      sleep 3
-    done
-    while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
-      sleep 3
-    done
-  changed_when: false
-
 - name: Add BigTop apt repo (bigtop.list)
   ansible.builtin.copy:
     dest: /etc/apt/sources.list.d/bigtop.list
@@ -35,6 +24,17 @@
 - name: apt update
   ansible.builtin.apt:
     update_cache: true
+
+- name: Wait for dpkg/apt lock to be released
+  ansible.builtin.shell: |
+    set -e
+    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+      sleep 3
+    done
+    while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+      sleep 3
+    done
+  changed_when: false
 
 - name: Install packages (Java8 + Hadoop)
   ansible.builtin.apt:
