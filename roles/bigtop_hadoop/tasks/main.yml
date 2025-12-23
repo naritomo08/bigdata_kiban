@@ -164,6 +164,8 @@
     hdfs dfs -test -d {{ yarn_remote_app_log_dir }} || hdfs dfs -mkdir -p {{ yarn_remote_app_log_dir }}
     hdfs dfs -chown -R {{ hadoop_user }}:{{ hadoop_group }} {{ yarn_remote_app_log_dir }}
     hdfs dfs -chmod 1777 {{ yarn_remote_app_log_dir }}
+  args:
+    executable: /bin/bash
   changed_when: false
 
 - name: Enable & start YARN + ATS + JHS
