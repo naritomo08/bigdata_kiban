@@ -23,6 +23,7 @@ ansible-playbook -i inventory.ini site.yml
 ## 動作確認(HDFS)
 
 ```bash
+sudo su - hadoop
 hdfs dfs -mkdir /input
 echo "hello hadoop hadoop yarn" | hdfs dfs -put - /input/test.txt
 
