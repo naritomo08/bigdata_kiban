@@ -1,0 +1,134 @@
+- name: Fail if not Ubuntu 24.04
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['distribution'] == 'Ubuntu'
+      - ansible_facts['distribution_version'] == '24.04'
+      - ansible_facts['pkg_mgr'] == 'apt'
+    fail_msg: >
+      Role hive_single supports Ubuntu 24.04 only.
+      Detected: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
+      (pkg_mgr={{ ansible_facts['pkg_mgr'] }}).
+
+- name: Install PostgreSQL (metastore) + psycopg2
+  ansible.builtin.apt:
+    name:
+      - postgresql
+      - postgresql-contrib
+      - python3-psycopg2
+    state: present
+    update_cache: true
+
+- name: Ensure PostgreSQL running
+  ansible.builtin.systemd:
+    name: postgresql
+    enabled: true
+    state: started
+
+- name: Create metastore user
+  community.postgresql.postgresql_user:
+    name: "{{ metastore_user }}"
+    password: "{{ metastore_password }}"
+  become_user: postgres
+
+- name: Create metastore db
+  community.postgresql.postgresql_db:
+    name: "{{ metastore_db }}"
+    owner: "{{ metastore_user }}"
+  become_user: postgres
+
+- name: Ensure public schema owner is metastore_user
+  community.postgresql.postgresql_query:
+    db: "{{ metastore_db }}"
+    query: "ALTER SCHEMA public OWNER TO {{ metastore_user }};"
+  become_user: postgres
+
+- name: Install Hive packages
+  ansible.builtin.apt:
+    name: "{{ hive_packages }}"
+    state: present
+
+- name: Deploy hive-site.xml
+  ansible.builtin.template:
+    src: hive-site.xml.j2
+    dest: "{{ hive_conf_dir }}/hive-site.xml"
+    mode: "0644"
+  notify: restart hive
+
+- name: Create HDFS warehouse dir
+  become_user: "{{ hadoop_user }}"
+  ansible.builtin.shell: |
+    set -euo pipefail
+    hdfs dfs -test -d {{ hive_warehouse_dir }} || hdfs dfs -mkdir -p {{ hive_warehouse_dir }}
+    hdfs dfs -chown -R {{ hive_user }}:{{ hive_group }} {{ hive_warehouse_dir }}
+    hdfs dfs -chmod 1777 {{ hive_warehouse_dir }}
+  args:
+    executable: /bin/bash
+  changed_when: false
+
+- name: Install PostgreSQL JDBC driver
+  ansible.builtin.apt:
+    name: libpostgresql-jdbc-java
+    state: present
+
+- name: Symlink postgresql.jar into Hive lib
+  ansible.builtin.file:
+    src: /usr/share/java/postgresql.jar
+    dest: "{{ hive_home }}/lib/postgresql.jar"
+    state: link
+    force: true
+
+- name: Remove old postgresql jar (if exists)
+  ansible.builtin.file:
+    path: "{{ hive_home }}/lib/postgresql-9.4.1208.jre7.jar"
+    state: absent
+
+- name: Init hive metastore schema (only once)
+  become_user: "{{ hadoop_user }}"
+  ansible.builtin.command: "/usr/lib/hive/bin/schematool -dbType postgres -initSchema"
+  args:
+    creates: "/var/lib/hive/.schema_inited"
+
+- name: Create schema init marker
+  ansible.builtin.file:
+    path: /var/lib/hive/.schema_inited
+    state: touch
+    owner: "{{ hadoop_user }}"
+    group: "{{ hadoop_group }}"
+    mode: "0644"
+
+- name: Write /etc/default/hive
+  ansible.builtin.copy:
+    dest: /etc/default/hive
+    mode: "0644"
+    content: |
+      HIVE_HOME=/usr/lib/hive
+      HIVE_CONF_DIR=/etc/hive/conf
+      HADOOP_CONF_DIR=/etc/hadoop/conf
+      YARN_CONF_DIR=/etc/hadoop/conf
+      MAPRED_CONF_DIR=/etc/hadoop/conf
+      JAVA_HOME={{ java_home }}
+      TERM=dumb
+  notify: restart hive
+
+- name: Install systemd units (Hive)
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: "0644"
+  loop:
+    - hive-metastore.service
+    - hiveserver2.service
+  notify: systemd daemon-reload
+
+- name: systemd daemon-reload now
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable & start Hive services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - hive-metastore
+    - hiveserver2

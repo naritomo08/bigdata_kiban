@@ -1,0 +1,46 @@
+- name: Hadoop (BigTop single node) - Ubuntu 24.04 only
+  hosts: hadoop
+  become: true
+
+  pre_tasks:
+    - name: Gather facts
+      ansible.builtin.setup:
+
+    - name: Fail if not Ubuntu 24.04
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['distribution'] == 'Ubuntu'
+          - ansible_facts['distribution_version'] == '24.04'
+          - ansible_facts['pkg_mgr'] == 'apt'
+        fail_msg: >
+          This playbook is restricted to Ubuntu 24.04 only.
+          Detected: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
+          (pkg_mgr={{ ansible_facts['pkg_mgr'] }}).
+        success_msg: "OK: Ubuntu 24.04 detected."
+
+  roles:
+    - role: bigtop_hadoop
+
+
+- name: Hive (single node) - Ubuntu 24.04 only
+  hosts: hive
+  become: true
+
+  pre_tasks:
+    - name: Gather facts
+      ansible.builtin.setup:
+
+    - name: Fail if not Ubuntu 24.04
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['distribution'] == 'Ubuntu'
+          - ansible_facts['distribution_version'] == '24.04'
+          - ansible_facts['pkg_mgr'] == 'apt'
+        fail_msg: >
+          This playbook is restricted to Ubuntu 24.04 only.
+          Detected: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
+          (pkg_mgr={{ ansible_facts['pkg_mgr'] }}).
+        success_msg: "OK: Ubuntu 24.04 detected."
+
+  roles:
+    - role: hive_single

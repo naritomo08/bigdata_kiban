@@ -1,0 +1,206 @@
+- name: Fail if not Ubuntu 24.04
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['distribution'] == 'Ubuntu'
+      - ansible_facts['distribution_version'] == '24.04'
+      - ansible_facts['pkg_mgr'] == 'apt'
+    fail_msg: >
+      Role bigtop_hadoop supports Ubuntu 24.04 only.
+      Detected: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
+      (pkg_mgr={{ ansible_facts['pkg_mgr'] }}).
+
+- name: Restart systemd-timesyncd
+  ansible.builtin.systemd:
+    name: systemd-timesyncd
+    state: restarted
+
+- name: Add BigTop apt repo (bigtop.list)
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/bigtop.list
+    content: "{{ bigtop_repo_line }}\n"
+    mode: "0644"
+  when: bigtop_repo_line is defined
+
+- name: apt update
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Wait for dpkg/apt lock to be released
+  ansible.builtin.shell: |
+    set -e
+    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+      sleep 3
+    done
+    while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+      sleep 3
+    done
+  changed_when: false
+
+- name: Install packages (Java8 + Hadoop)
+  ansible.builtin.apt:
+    name: "{{ hadoop_packages }}"
+    state: present
+
+- name: Ensure hadoop group
+  ansible.builtin.group:
+    name: "{{ hadoop_group }}"
+    state: present
+
+- name: Ensure hadoop user
+  ansible.builtin.user:
+    name: "{{ hadoop_user }}"
+    group: "{{ hadoop_group }}"
+    shell: /bin/bash
+    create_home: true
+
+- name: Create Hadoop directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ hadoop_user }}"
+    group: "{{ hadoop_group }}"
+    mode: "0755"
+  loop:
+    - "{{ hadoop_tmp_dir }}"
+    - "{{ yarn_local_dir }}"
+    - "{{ yarn_log_dir }}"
+
+- name: Deploy core-site.xml
+  ansible.builtin.template:
+    src: core-site.xml.j2
+    dest: "{{ hadoop_conf_dir }}/core-site.xml"
+    mode: "0644"
+  notify: restart hadoop services
+
+- name: Deploy yarn-site.xml
+  ansible.builtin.template:
+    src: yarn-site.xml.j2
+    dest: "{{ hadoop_conf_dir }}/yarn-site.xml"
+    mode: "0644"
+  notify: restart hadoop services
+
+- name: Deploy yarn-env.sh
+  ansible.builtin.template:
+    src: yarn-env.sh.j2
+    dest: "{{ hadoop_conf_dir }}/yarn-env.sh"
+    mode: "0644"
+  notify: restart hadoop services
+
+- name: Deploy mapred-site.xml
+  ansible.builtin.template:
+    src: mapred-site.xml.j2
+    dest: "{{ hadoop_conf_dir }}/mapred-site.xml"
+    mode: "0644"
+  notify: restart hadoop services
+
+- name: Write /etc/default/hadoop
+  ansible.builtin.copy:
+    dest: /etc/default/hadoop
+    mode: "0644"
+    content: |
+      HADOOP_HOME=/usr/lib/hadoop
+      HADOOP_CONF_DIR={{ hadoop_conf_dir }}
+      YARN_CONF_DIR={{ hadoop_conf_dir }}
+      MAPRED_CONF_DIR={{ hadoop_conf_dir }}
+      JAVA_HOME={{ java_home }}
+      TERM=dumb
+  notify: restart hadoop services
+
+- name: Install systemd units
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: "0644"
+  loop:
+    - hadoop-hdfs-namenode.service
+    - hadoop-hdfs-datanode.service
+    - hadoop-yarn-resourcemanager.service
+    - hadoop-yarn-nodemanager.service
+    - hadoop-yarn-timelineserver.service
+    - hadoop-mapreduce-historyserver.service
+  notify: systemd daemon-reload
+
+- name: Apply working directory overrides for HDFS (replace defaults in unit files)
+  ansible.builtin.replace:
+    path: "/etc/systemd/system/{{ item }}"
+    regexp: '^WorkingDirectory=/var/lib/hadoop-hdfs$'
+    replace: "WorkingDirectory={{ hdfs_workdir }}"
+  loop:
+    - hadoop-hdfs-namenode.service
+    - hadoop-hdfs-datanode.service
+  notify: systemd daemon-reload
+
+- name: Apply working directory overrides for YARN
+  ansible.builtin.replace:
+    path: "/etc/systemd/system/{{ item }}"
+    regexp: '^WorkingDirectory=/var/lib/hadoop-yarn$'
+    replace: "WorkingDirectory={{ yarn_workdir }}"
+  loop:
+    - hadoop-yarn-resourcemanager.service
+    - hadoop-yarn-nodemanager.service
+  notify: systemd daemon-reload
+
+- name: systemd daemon-reload now
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Format NameNode (only once)
+  become_user: "{{ hadoop_user }}"
+  ansible.builtin.command: "hdfs namenode -format -nonInteractive"
+  args:
+    creates: "{{ hdfs_workdir }}/current/VERSION"
+
+- name: Enable & start HDFS
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - hadoop-hdfs-namenode
+    - hadoop-hdfs-datanode
+
+- name: Wait for NameNode RPC port 9000
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 9000
+    delay: 2
+    timeout: 120
+
+- name: Wait for NameNode Web UI 9870 (optional)
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 9870
+    delay: 2
+    timeout: 120
+  ignore_errors: true
+
+- name: Create HDFS dirs for JobHistory and log aggregation
+  become_user: "{{ hadoop_user }}"
+  ansible.builtin.shell: |
+    set -euo pipefail
+    hdfs dfs -test -d {{ jhs_done_dir }} || hdfs dfs -mkdir -p {{ jhs_done_dir }} {{ jhs_intermediate_dir }}
+    hdfs dfs -chown -R {{ hadoop_user }}:{{ hadoop_group }} /mr-history
+    hdfs dfs -chmod -R 1777 /mr-history
+
+    hdfs dfs -test -d {{ yarn_remote_app_log_dir }} || hdfs dfs -mkdir -p {{ yarn_remote_app_log_dir }}
+    hdfs dfs -chown -R {{ hadoop_user }}:{{ hadoop_group }} {{ yarn_remote_app_log_dir }}
+    hdfs dfs -chmod 1777 {{ yarn_remote_app_log_dir }}
+
+    hdfs dfs -test -d {{ atsv2_dir }} || hdfs dfs -mkdir -p {{ atsv2_dir }}
+    hdfs dfs -chown -R {{ yarn_user }}:{{ yarn_group }} {{ atsv2_dir }}
+    hdfs dfs -chmod 1777 {{ atsv2_dir }}
+
+  args:
+    executable: /bin/bash
+  changed_when: false
+
+- name: Enable & start YARN + ATS + JHS
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - hadoop-yarn-resourcemanager
+    - hadoop-yarn-nodemanager
+    - hadoop-yarn-timelineserver
+    - hadoop-mapreduce-historyserver

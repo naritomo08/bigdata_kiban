@@ -1,0 +1,21 @@
+[Unit]
+Description=Apache HiveServer2 Service
+After=network.target hive-metastore.service
+Wants=network.target hive-metastore.service
+
+[Service]
+Type=simple
+User=hadoop
+Group=hadoop
+EnvironmentFile=-/etc/default/hive
+Environment="HADOOP_CLIENT_OPTS=-Dlog4j2.debug=false"
+Environment="HIVE_OPTS=--hiveconf hive.root.logger=INFO,console --hiveconf hive.server2.logging.operation.enabled=true"
+Environment="HADOOP_HEAPSIZE=1024"
+ExecStartPre=/bin/bash -lc 'for i in {1..30}; do nc -z localhost 9083 && exit 0; sleep 1; done; exit 1'
+ExecStart=/usr/lib/hive/bin/hive --service hiveserver2
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=100000
+
+[Install]
+WantedBy=multi-user.target
