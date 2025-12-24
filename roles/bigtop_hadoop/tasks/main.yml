@@ -180,7 +180,7 @@
     set -euo pipefail
     hdfs dfs -test -d {{ jhs_done_dir }} || hdfs dfs -mkdir -p {{ jhs_done_dir }} {{ jhs_intermediate_dir }}
     hdfs dfs -chown -R {{ hadoop_user }}:{{ hadoop_group }} /mr-history
-    hdfs dfs -chmod -R 755 /mr-history
+    hdfs dfs -chmod -R 1777 /mr-history
 
     hdfs dfs -test -d {{ yarn_remote_app_log_dir }} || hdfs dfs -mkdir -p {{ yarn_remote_app_log_dir }}
     hdfs dfs -chown -R {{ hadoop_user }}:{{ hadoop_group }} {{ yarn_remote_app_log_dir }}
@@ -188,7 +188,7 @@
 
     hdfs dfs -test -d {{ atsv2_dir }} || hdfs dfs -mkdir -p {{ atsv2_dir }}
     hdfs dfs -chown -R {{ yarn_user }}:{{ yarn_group }} {{ atsv2_dir }}
-    hdfs dfs -chmod 775 {{ atsv2_dir }}
+    hdfs dfs -chmod 1777 {{ atsv2_dir }}
 
   args:
     executable: /bin/bash

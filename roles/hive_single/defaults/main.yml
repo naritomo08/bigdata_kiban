@@ -1,6 +1,9 @@
 hadoop_user: hadoop
 hadoop_group: hadoop
 
+hive_user: hive
+hive_group: hive
+
 hive_conf_dir: /etc/hive/conf
 hive_home: /usr/lib/hive
 
