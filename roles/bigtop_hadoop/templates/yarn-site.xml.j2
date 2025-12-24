@@ -77,19 +77,6 @@
     <name>yarn.timeline-service.address</name>
     <value>{{ ats_address }}</value>
   </property>
-  <property>
-    <name>yarn.timeline-service.webapp.address</name>
-    <value>{{ ats_webapp }}</value>
-  </property>
-
-  <property>
-    <name>yarn.timeline-service.store-class</name>
-    <value>org.apache.hadoop.yarn.server.timeline.LeveldbTimelineStore</value>
-  </property>
-  <property>
-    <name>yarn.timeline-service.leveldb-timeline-store.path</name>
-    <value>{{ ats_leveldb_path }}</value>
-  </property>
 
   <property>
     <name>yarn.log-aggregation-enable</name>
@@ -104,4 +91,20 @@
     <name>yarn.log.server.url</name>
     <value>{{ yarn_log_server_url }}</value>
   </property>
+
+  <property>
+    <name>yarn.webapp.ui2.enable</name>
+    <value>true</value>
+  </property>
+ 
+  <property>
+    <name>yarn.timeline-service.writer.class</name>
+    <value>org.apache.hadoop.yarn.server.timelineservice.storage.FileSystemTimelineWriterImpl</value>
+  </property>
+ 
+  <property>
+    <name>yarn.timeline-service.reader.webapp.address</name>
+    <value>{{ ats_api }}</value>
+  </property>
+
 </configuration>

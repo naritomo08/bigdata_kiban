@@ -64,7 +64,6 @@
     - "{{ hadoop_tmp_dir }}"
     - "{{ yarn_local_dir }}"
     - "{{ yarn_log_dir }}"
-    - "{{ yarn_timeline_dir }}"
 
 - name: Deploy core-site.xml
   ansible.builtin.template:
@@ -77,6 +76,13 @@
   ansible.builtin.template:
     src: yarn-site.xml.j2
     dest: "{{ hadoop_conf_dir }}/yarn-site.xml"
+    mode: "0644"
+  notify: restart hadoop services
+
+- name: Deploy yarn-env.sh
+  ansible.builtin.template:
+    src: yarn-env.sh.j2
+    dest: "{{ hadoop_conf_dir }}/yarn-env.sh"
     mode: "0644"
   notify: restart hadoop services
 
@@ -179,6 +185,11 @@
     hdfs dfs -test -d {{ yarn_remote_app_log_dir }} || hdfs dfs -mkdir -p {{ yarn_remote_app_log_dir }}
     hdfs dfs -chown -R {{ hadoop_user }}:{{ hadoop_group }} {{ yarn_remote_app_log_dir }}
     hdfs dfs -chmod 1777 {{ yarn_remote_app_log_dir }}
+
+    hdfs dfs -test -d {{ atsv2_dir }} || hdfs dfs -mkdir -p {{ atsv2_dir }}
+    hdfs dfs -chown -R {{ yarn_user }}:{{ yarn_group }} {{ atsv2_dir }}
+    hdfs dfs -chmod 775 {{ atsv2_dir }}
+
   args:
     executable: /bin/bash
   changed_when: false

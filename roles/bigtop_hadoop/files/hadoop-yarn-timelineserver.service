@@ -1,5 +1,5 @@
 [Unit]
-Description=Hadoop YARN Timeline Server (ATS v1)
+Description=Hadoop YARN Timeline Server (ATS v2)
 After=network.target
 Wants=network.target
 
@@ -8,8 +8,8 @@ Type=forking
 User=hadoop
 Group=hadoop
 EnvironmentFile=/etc/default/hadoop
-ExecStart=/usr/lib/hadoop-yarn/bin/yarn --daemon start timelineserver
-ExecStop=/usr/lib/hadoop-yarn/bin/yarn --daemon stop timelineserver
+ExecStart=/usr/lib/hadoop-yarn/bin/yarn --daemon start timelinereader
+ExecStop=/usr/lib/hadoop-yarn/bin/yarn --daemon stop timelinereader
 Restart=on-failure
 RestartSec=5
 

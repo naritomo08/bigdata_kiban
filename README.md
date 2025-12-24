@@ -63,8 +63,8 @@ hdfs dfs -rm -r -skipTrash /output
 |DataNode|http://ホストIPアドレス:9864|
 |ResourceManager|http://ホストIPアドレス:8088|
 |NodeManager|http://ホストIPアドレス:8042|
-|JobHistory|http://ホストIPアドレス:19888|
-|TimelineService|http://ホストIPアドレス:8188|
+|TimelineService(API応答)|http://ホストIPアドレス:8188/ws/v2/timeline|
+|YARN UI2|http://ホストIPアドレス:8088/ui2|
 
 ## 動作確認(Hive)
 
