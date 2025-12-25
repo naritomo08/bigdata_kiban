@@ -3,9 +3,6 @@ Description=Apache Hive Metastore Service
 After=network.target
 Wants=network.target
 
-After=hadoop-hdfs-namenode.service hadoop-hdfs-datanode.service hadoop-yarn-resourcemanager.service hadoop-yarn-nodemanager.service
-Wants=hadoop-hdfs-namenode.service hadoop-hdfs-datanode.service hadoop-yarn-resourcemanager.service hadoop-yarn-nodemanager.service
-
 [Service]
 Type=simple
 User=hadoop

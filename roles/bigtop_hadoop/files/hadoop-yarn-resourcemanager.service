@@ -1,7 +1,7 @@
 [Unit]
 Description=Hadoop YARN ResourceManager
-After=network.target hadoop-hdfs-namenode.service hadoop-hdfs-datanode.service
-Wants=network.target hadoop-hdfs-namenode.service hadoop-hdfs-datanode.service
+After=network.target
+Wants=network.target
 
 [Service]
 Type=simple
