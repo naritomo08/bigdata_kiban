@@ -5,8 +5,8 @@ Wants=network.target
 
 [Service]
 Type=simple
-User=hadoop
-Group=hadoop
+User=hive
+Group=hive
 EnvironmentFile=-/etc/default/hive
 Environment="HIVE_CONF_DIR=/etc/hive/conf"
 ExecStart=/usr/lib/hive/bin/hive --service metastore

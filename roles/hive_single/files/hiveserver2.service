@@ -5,8 +5,8 @@ Wants=network.target hive-metastore.service
 
 [Service]
 Type=simple
-User=hadoop
-Group=hadoop
+User=hive
+Group=hive
 EnvironmentFile=-/etc/default/hive
 Environment="HADOOP_CLIENT_OPTS=-Dlog4j2.debug=false"
 Environment="HIVE_OPTS=--hiveconf hive.root.logger=INFO,console --hiveconf hive.server2.logging.operation.enabled=true"
