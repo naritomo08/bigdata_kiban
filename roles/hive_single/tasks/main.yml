@@ -59,8 +59,9 @@
   ansible.builtin.shell: |
     set -euo pipefail
     hdfs dfs -test -d {{ hive_warehouse_dir }} || hdfs dfs -mkdir -p {{ hive_warehouse_dir }}
-    hdfs dfs -chown -R {{ hive_user }}:{{ hive_group }} {{ hive_warehouse_dir }}
-    hdfs dfs -chmod 1777 {{ hive_warehouse_dir }}
+    hdfs dfs -chown -R {{ hive_user }}:{{ hive_group }} {{ hive_dir }}
+    hdfs dfs -chmod 771 {{ hive_dir }}
+    hdfs dfs -chmod 771 {{ hive_warehouse_dir }}
   args:
     executable: /bin/bash
   changed_when: false
