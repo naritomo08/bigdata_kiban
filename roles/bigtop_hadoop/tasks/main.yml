@@ -180,9 +180,9 @@
     set -euo pipefail
     hdfs dfs -test -d {{ jhs_done_dir }} || hdfs dfs -mkdir -p {{ jhs_done_dir }} {{ jhs_intermediate_dir }} 
     hdfs dfs -chown -R {{ hadoop_user }}:{{ hadoop_group }} /mr-history
-    sudo -u hadoop hdfs dfs -chmod 1777 /mr-history/tmp
-    sudo -u hadoop hdfs dfs -chmod 755  /mr-history/done
-    sudo -u hadoop hdfs dfs -chmod 755  /mr-history
+    hdfs dfs -chmod 1777 /mr-history/tmp
+    hdfs dfs -chmod 755  /mr-history/done
+    hdfs dfs -chmod 755  /mr-history
 
     hdfs dfs -test -d {{ yarn_remote_app_log_dir }} || hdfs dfs -mkdir -p {{ yarn_remote_app_log_dir }}
     hdfs dfs -chown -R {{ hadoop_user }}:{{ hadoop_group }} {{ yarn_remote_app_log_dir }}
