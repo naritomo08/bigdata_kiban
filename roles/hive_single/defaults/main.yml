@@ -18,6 +18,8 @@ hiveserver2_port: 10000
 hive_dir: /user/hive
 hive_warehouse_dir: /user/hive/warehouse
 
+tmp_dir: /tmp
+
 hive_packages:
   - hive
   - hive-metastore

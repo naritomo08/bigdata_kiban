@@ -62,6 +62,7 @@
     hdfs dfs -chown -R {{ hive_user }}:{{ hive_group }} {{ hive_dir }}
     hdfs dfs -chmod 771 {{ hive_dir }}
     hdfs dfs -chmod 771 {{ hive_warehouse_dir }}
+    hdfs dfs -chmod 1777 {{ tmp_dir }}
   args:
     executable: /bin/bash
   changed_when: false
