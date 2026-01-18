@@ -1,6 +1,9 @@
 hadoop_user: hadoop
 hadoop_group: hadoop
 
+hive_user: hive
+hive_group: hive
+
 hive_conf_dir: /etc/hive/conf
 hive_home: /usr/lib/hive
 
@@ -12,7 +15,10 @@ metastore_password: HiveStrongPassword
 
 hive_metastore_uri: thrift://127.0.0.1:9083
 hiveserver2_port: 10000
+hive_dir: /user/hive
 hive_warehouse_dir: /user/hive/warehouse
+
+tmp_dir: /tmp
 
 hive_packages:
   - hive

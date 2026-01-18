@@ -1,7 +1,7 @@
 [Unit]
 Description=Hadoop YARN NodeManager
-After=network.target hadoop-yarn-resourcemanager.service
-Wants=network.target hadoop-yarn-resourcemanager.service
+After=network.target
+Wants=network.target
 
 [Service]
 Type=simple

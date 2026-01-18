@@ -1,6 +1,9 @@
 hadoop_user: hadoop
 hadoop_group: hadoop
 
+yarn_user: yarn
+yarn_group: yarn
+
 hadoop_conf_dir: /etc/hadoop/conf
 
 hadoop_packages:
@@ -14,7 +17,6 @@ hadoop_var_root: /var/lib/hadoop
 hadoop_tmp_dir: /var/lib/hadoop/tmp
 yarn_local_dir: /var/lib/hadoop/yarn/local
 yarn_log_dir: /var/lib/hadoop/yarn/logs
-yarn_timeline_dir: /var/lib/hadoop/yarn/timeline
 
 hdfs_workdir: /var/lib/hadoop-hdfs
 yarn_workdir: /var/lib/hadoop-yarn
@@ -28,11 +30,11 @@ yarn_sched_max_mb: 1024
 yarn_sched_min_mb: 128
 
 ats_enabled: true
-ats_version: "1.0"
+ats_version: "2.0"
 ats_hostname: "localhost"
 ats_address: "0.0.0.0:10200"
-ats_webapp: "0.0.0.0:8188"
-ats_leveldb_path: "/var/lib/hadoop/yarn/timeline"
+ats_api: "0.0.0.0:8188"
+atsv2_dir: /atsv2
 
 yarn_log_aggregation: true
 yarn_remote_app_log_dir: "/app-logs"

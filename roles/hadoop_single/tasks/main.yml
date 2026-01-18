@@ -64,7 +64,6 @@
     - "{{ hadoop_tmp_dir }}"
     - "{{ yarn_local_dir }}"
     - "{{ yarn_log_dir }}"
-    - "{{ yarn_timeline_dir }}"
 
 - name: Deploy core-site.xml
   ansible.builtin.template:
@@ -77,6 +76,13 @@
   ansible.builtin.template:
     src: yarn-site.xml.j2
     dest: "{{ hadoop_conf_dir }}/yarn-site.xml"
+    mode: "0644"
+  notify: restart hadoop services
+
+- name: Deploy yarn-env.sh
+  ansible.builtin.template:
+    src: yarn-env.sh.j2
+    dest: "{{ hadoop_conf_dir }}/yarn-env.sh"
     mode: "0644"
   notify: restart hadoop services
 
@@ -153,17 +159,39 @@
     - hadoop-hdfs-namenode
     - hadoop-hdfs-datanode
 
+- name: Wait for NameNode RPC port 9000
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 9000
+    delay: 2
+    timeout: 120
+
+- name: Wait for NameNode Web UI 9870 (optional)
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 9870
+    delay: 2
+    timeout: 120
+  ignore_errors: true
+
 - name: Create HDFS dirs for JobHistory and log aggregation
   become_user: "{{ hadoop_user }}"
   ansible.builtin.shell: |
     set -euo pipefail
-    hdfs dfs -test -d {{ jhs_done_dir }} || hdfs dfs -mkdir -p {{ jhs_done_dir }} {{ jhs_intermediate_dir }}
+    hdfs dfs -test -d {{ jhs_done_dir }} || hdfs dfs -mkdir -p {{ jhs_done_dir }} {{ jhs_intermediate_dir }} 
     hdfs dfs -chown -R {{ hadoop_user }}:{{ hadoop_group }} /mr-history
-    hdfs dfs -chmod -R 755 /mr-history
+    hdfs dfs -chmod 1777 /mr-history/tmp
+    hdfs dfs -chmod 755  /mr-history/done
+    hdfs dfs -chmod 755  /mr-history
 
     hdfs dfs -test -d {{ yarn_remote_app_log_dir }} || hdfs dfs -mkdir -p {{ yarn_remote_app_log_dir }}
     hdfs dfs -chown -R {{ hadoop_user }}:{{ hadoop_group }} {{ yarn_remote_app_log_dir }}
     hdfs dfs -chmod 1777 {{ yarn_remote_app_log_dir }}
+
+    hdfs dfs -test -d {{ atsv2_dir }} || hdfs dfs -mkdir -p {{ atsv2_dir }}
+    hdfs dfs -chown -R {{ yarn_user }}:{{ yarn_group }} {{ atsv2_dir }}
+    hdfs dfs -chmod 1777 {{ atsv2_dir }}
+
   args:
     executable: /bin/bash
   changed_when: false
