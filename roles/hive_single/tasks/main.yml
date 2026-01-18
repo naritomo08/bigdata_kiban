@@ -9,33 +9,6 @@
       Detected: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
       (pkg_mgr={{ ansible_facts['pkg_mgr'] }}).
 
-- name: Restart systemd-timesyncd
-  ansible.builtin.systemd:
-    name: systemd-timesyncd
-    state: restarted
-
-- name: Add BigTop apt repo (bigtop.list)
-  ansible.builtin.copy:
-    dest: /etc/apt/sources.list.d/bigtop.list
-    content: "{{ bigtop_repo_line }}\n"
-    mode: "0644"
-  when: bigtop_repo_line is defined
-
-- name: apt update
-  ansible.builtin.apt:
-    update_cache: true
-
-- name: Wait for dpkg/apt lock to be released
-  ansible.builtin.shell: |
-    set -e
-    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
-      sleep 3
-    done
-    while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
-      sleep 3
-    done
-  changed_when: false
-
 - name: Install PostgreSQL (metastore) + psycopg2
   ansible.builtin.apt:
     name:

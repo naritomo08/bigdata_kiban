@@ -16,6 +16,8 @@ site.yml と各 role の先頭で `assert` を行い、Ubuntu 24.04 以外では
 
 本playbookではシングルHadoop&Hive&Zeppelinまで構築できます。
 
+hiveについては一緒にhadoopも導入する必要があります。
+
 ## 事前準備
 
 ```bash
