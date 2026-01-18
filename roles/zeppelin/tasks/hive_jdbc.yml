@@ -1,0 +1,16 @@
+- name: Ensure interpreter jdbc dir exists
+  ansible.builtin.file:
+    path: "{{ hive_jdbc_dest_dir }}"
+    state: directory
+    owner: "{{ zeppelin_user }}"
+    group: "{{ zeppelin_user }}"
+    mode: "0755"
+
+- name: Download Hive JDBC standalone jar
+  ansible.builtin.get_url:
+    url: "{{ hive_jdbc_url }}"
+    dest: "{{ hive_jdbc_dest_dir }}/{{ hive_jdbc_jar }}"
+    owner: "{{ zeppelin_user }}"
+    group: "{{ zeppelin_user }}"
+    mode: "0644"
+  notify: restart zeppelin

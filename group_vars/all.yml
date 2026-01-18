@@ -48,6 +48,27 @@ metastore_db: "metastore"
 metastore_user: "hive"
 metastore_password: "HiveStrongPassword"   # 本番はAnsible Vault推奨
 
-hive_metastore_uri: "thrift://127.0.0.1:9083"
+hive_metastore_uri: "thrift://{{ inventory_hostname }}:9083"
 hiveserver2_port: 10000
 hive_warehouse_dir: "/user/hive/warehouse"
+
+# ===== Java =====
+zeppelin_java_package: openjdk-11-jdk
+zeppelin_java_home: /usr/lib/jvm/java-11-openjdk-amd64
+
+# ===== Zeppelin =====
+zeppelin_user: zeppelin
+zeppelin_home: /opt/zeppelin
+
+zeppelin_version: "0.10.1"
+zeppelin_tgz: "zeppelin-{{ zeppelin_version }}-bin-all.tgz"
+zeppelin_url: "https://dlcdn.apache.org/zeppelin/zeppelin-{{ zeppelin_version }}/{{ zeppelin_tgz }}"
+
+zeppelin_addr: "0.0.0.0"
+zeppelin_port: 8080
+
+# ===== Hive JDBC =====
+hive_jdbc_version: "3.1.3"
+hive_jdbc_jar: "hive-jdbc-{{ hive_jdbc_version }}-standalone.jar"
+hive_jdbc_url: "https://repo1.maven.org/maven2/org/apache/hive/hive-jdbc/{{ hive_jdbc_version }}/{{ hive_jdbc_jar }}"
+hive_jdbc_dest_dir: "{{ zeppelin_home }}/interpreter/jdbc"

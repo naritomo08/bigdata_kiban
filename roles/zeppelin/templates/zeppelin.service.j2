@@ -1,0 +1,13 @@
+[Unit]
+Description=Apache Zeppelin
+After=network.target
+
+[Service]
+Type=forking
+User={{ zeppelin_user }}
+ExecStart={{ zeppelin_home }}/bin/zeppelin-daemon.sh start
+ExecStop={{ zeppelin_home }}/bin/zeppelin-daemon.sh stop
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

@@ -1,16 +1,20 @@
-# Hadoop (BigTop) + Hive (PostgreSQL metastore) を Ubuntu 24.04 限定で構築する Ansible
+# Hadoop基盤 を Ubuntu 24.04 限定で構築する Ansible
 
-前に提示したHadoop/Hive構築についてまとまったため、
+前に提示したHadoop/Hive/Zeppelin構築についてまとまったため、
 ansibleで構築自動化させました。
 
 https://qiita.com/naritomo08/items/cf1d89b753a217617c09
 
 https://qiita.com/naritomo08/items/f68ccb8e9c0a59b9ba02
 
+https://qiita.com/naritomo08/items/d03e78202c759f2a2c06
+
 ## 前提
 
 site.yml と各 role の先頭で `assert` を行い、Ubuntu 24.04 以外では必ず失敗します。
 メモリは2GBあれば動きます。
+
+本playbookではシングルHadoop&Hive&Zeppelinまで構築できます。
 
 ## 事前準備
 
@@ -73,7 +77,7 @@ hdfs dfs -rm -r -skipTrash /output
 
 ## 動作確認(Hive)
 
-### 1. Beeline 接続（メモリ制限付き）
+### Beeline 接続（メモリ制限付き）
 
 ```bash
 sudo su - hadoop
@@ -88,7 +92,7 @@ sudo su - hadoop
   -n hadoop
 ```
 
-### 2. 実行エンジン確認
+### 実行エンジン確認
 
 ```bash
 set hive.execution.engine;
@@ -100,7 +104,7 @@ set hive.execution.engine;
 hive.execution.engine=mr
 ```
 
-### 3. テーブル作成・INSERT・SELECT
+### テーブル作成・INSERT・SELECT
 
 ```bash
 CREATE TABLE t1 (
@@ -134,4 +138,101 @@ Application Type: MAPREDUCE
 State: FINISHED
 
 Logs に Exception がないこと
+```
+
+## Hive設定
+
+### Interpreter 設定画面
+
+右上ユーザー → Interpreter → 右上のcreate
+
+```bash
+Interpreter Name
+hive
+
+Interpreter group
+jdbc
+```
+
+properties:
+
+以下のパラメータを編集する。
+
+```bash
+default.url
+jdbc:hive2://master1:10000/default
+```
+
+以下のパラメータを追記する。
+
+```bash
+hive.driver
+org.apache.hive.jdbc.HiveDriver
+
+hive.user
+hive
+```
+
+## 動作確認（HiveQL）
+
+### 新規 Notebook 作成
+
+Notebook → Create new note
+
+Note Name:hive-test
+Default Interpreter:hive
+
+### Hive クエリ実行
+
+以下の処理を順々に行う。
+エラーが出ず動かせること。
+
+```bash
+%hive
+SHOW DATABASES;
+```
+
+```bash
+%hive
+USE default;
+SHOW TABLES;
+```
+
+```bash
+%hive
+SELECT * FROM t1 LIMIT 10;
+```
+
+→前のコマンドで何もテーブルが出てない場合、実施しないこと。
+
+```bash
+%hive
+drop table t1;
+```
+
+→前のコマンドを実施していない場合、実施しないこと。
+
+```bash
+%hive
+CREATE TABLE t1 (
+  col1 INT,
+  col2 STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '\t'
+STORED AS TEXTFILE;
+```
+
+```bash
+%hive
+set mapreduce.map.memory.mb=256;
+set mapreduce.reduce.memory.mb=256;
+set yarn.app.mapreduce.am.resource.mb=256;
+
+INSERT INTO t1 VALUES (1,'a'),(2,'b');
+```
+
+```bash
+%hive
+SELECT * FROM t1 LIMIT 10;
 ```

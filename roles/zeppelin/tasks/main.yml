@@ -1,0 +1,30 @@
+- name: Fail if not Ubuntu 24.04
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['distribution'] == 'Ubuntu'
+      - ansible_facts['distribution_version'] == '24.04'
+      - ansible_facts['pkg_mgr'] == 'apt'
+    fail_msg: >
+      Role hive_single supports Ubuntu 24.04 only.
+      Detected: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
+      (pkg_mgr={{ ansible_facts['pkg_mgr'] }}).
+
+- name: Restart systemd-timesyncd
+  ansible.builtin.systemd:
+    name: systemd-timesyncd
+    state: restarted
+
+- name: Java 11
+  ansible.builtin.import_tasks: java.yml
+
+- name: Install Zeppelin
+  ansible.builtin.import_tasks: zeppelin_install.yml
+
+- name: Configure Zeppelin
+  ansible.builtin.import_tasks: zeppelin_config.yml
+
+- name: Systemd service
+  ansible.builtin.import_tasks: zeppelin_service.yml
+
+- name: Get Hive JDBC jar
+  ansible.builtin.import_tasks: hive_jdbc.yml

@@ -1,0 +1,43 @@
+- name: Create zeppelin user (system)
+  ansible.builtin.user:
+    name: "{{ zeppelin_user }}"
+    system: true
+    create_home: true
+    home: "{{ zeppelin_home }}"
+    shell: /bin/bash
+
+- name: Ensure zeppelin home exists
+  ansible.builtin.file:
+    path: "{{ zeppelin_home }}"
+    state: directory
+    owner: "{{ zeppelin_user }}"
+    group: "{{ zeppelin_user }}"
+    mode: "0755"
+
+- name: Download Zeppelin tgz
+  ansible.builtin.get_url:
+    url: "{{ zeppelin_url }}"
+    dest: "/tmp/{{ zeppelin_tgz }}"
+    mode: "0644"
+
+- name: Extract Zeppelin tgz to /opt/zeppelin (strip top dir)
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ zeppelin_tgz }}"
+    dest: "{{ zeppelin_home }}"
+    remote_src: true
+    owner: "{{ zeppelin_user }}"
+    group: "{{ zeppelin_user }}"
+    extra_opts:
+      - --strip-components=1
+    creates: "{{ zeppelin_home }}/bin/zeppelin-daemon.sh"
+
+- name: Create logs/run dirs
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ zeppelin_user }}"
+    group: "{{ zeppelin_user }}"
+    mode: "0755"
+  loop:
+    - "{{ zeppelin_home }}/logs"
+    - "{{ zeppelin_home }}/run"

@@ -1,0 +1,25 @@
+- name: Ensure conf dir exists
+  ansible.builtin.file:
+    path: "{{ zeppelin_home }}/conf"
+    state: directory
+    owner: "{{ zeppelin_user }}"
+    group: "{{ zeppelin_user }}"
+    mode: "0755"
+
+- name: Deploy zeppelin-env.sh
+  ansible.builtin.template:
+    src: zeppelin-env.sh.j2
+    dest: "{{ zeppelin_home }}/conf/zeppelin-env.sh"
+    owner: "{{ zeppelin_user }}"
+    group: "{{ zeppelin_user }}"
+    mode: "0644"
+  notify: restart zeppelin
+
+- name: Deploy zeppelin-site.xml
+  ansible.builtin.template:
+    src: zeppelin-site.xml.j2
+    dest: "{{ zeppelin_home }}/conf/zeppelin-site.xml"
+    owner: "{{ zeppelin_user }}"
+    group: "{{ zeppelin_user }}"
+    mode: "0644"
+  notify: restart zeppelin

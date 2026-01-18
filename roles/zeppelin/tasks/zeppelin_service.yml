@@ -1,0 +1,16 @@
+- name: Install systemd unit
+  ansible.builtin.template:
+    src: zeppelin.service.j2
+    dest: /etc/systemd/system/zeppelin.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - systemd daemon-reload
+    - restart zeppelin
+
+- name: Enable and start zeppelin
+  ansible.builtin.systemd:
+    name: zeppelin
+    enabled: true
+    state: started
