@@ -1,5 +1,5 @@
 - name: Hadoop (BigTop single node) - Ubuntu 24.04 only
-  hosts: hadoop
+  hosts: single_hadoop
   become: true
 
   pre_tasks:
@@ -19,11 +19,11 @@
         success_msg: "OK: Ubuntu 24.04 detected."
 
   roles:
-    - role: bigtop_hadoop
+    - role: hadoop_single
 
 
 - name: Hive (single node) - Ubuntu 24.04 only
-  hosts: hive
+  hosts: single_hive
   become: true
 
   pre_tasks:
