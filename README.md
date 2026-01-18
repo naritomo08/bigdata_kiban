@@ -19,7 +19,7 @@ git clone git@github.com:naritomo08/bigdata_kiban.git
 cd github_kiban
 ansible-galaxy collection install community.postgresql
 vi inventory
-→IP部分を変更する。
+→ホスト名、IP部分を変更する。
 ```
 
 ## 実行
