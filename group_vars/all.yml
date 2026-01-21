@@ -11,6 +11,8 @@ bigtop_repo_line: "deb [trusted=yes] http://repos.bigtop.apache.org/releases/3.3
 fs_defaultfs: "hdfs://{{ inventory_hostname }}:9000"
 hadoop_tmp_dir: "/var/lib/hadoop/tmp"
 
+dfs_replication: 1
+
 rm_hostname: "{{ inventory_hostname }}"
 yarn_rm_webapp: "0.0.0.0:8088"
 
