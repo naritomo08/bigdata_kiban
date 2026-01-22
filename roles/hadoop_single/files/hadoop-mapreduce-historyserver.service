@@ -12,6 +12,8 @@ ExecStart=/usr/bin/mapred --config ${HADOOP_CONF_DIR} historyserver
 Restart=on-failure
 RestartSec=5
 LimitNOFILE=100000
+Environment="TZ=Asia/Tokyo"
+Environment="JAVA_TOOL_OPTIONS=-Duser.timezone=Asia/Tokyo"
 
 [Install]
 WantedBy=multi-user.target
