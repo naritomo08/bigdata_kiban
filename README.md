@@ -166,7 +166,7 @@ properties:
 
 ```bash
 default.url
-jdbc:hive2://master1:10000/default
+jdbc:hive2://<hostname>:10000/default
 ```
 
 以下のパラメータを追記する。
