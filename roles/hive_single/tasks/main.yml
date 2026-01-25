@@ -159,3 +159,8 @@
   loop:
     - hive-metastore
     - hiveserver2
+
+- name: Ensure HDFS /tmp is world-writable
+  become: true
+  become_user: hadoop
+  ansible.builtin.command: hdfs dfs -chmod -R 1777 /tmp

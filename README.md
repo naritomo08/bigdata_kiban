@@ -90,7 +90,7 @@ sudo su - hadoop
   --hiveconf mapreduce.map.java.opts="-Xmx384m" \
   --hiveconf mapreduce.reduce.java.opts="-Xmx384m" \
   --hiveconf yarn.app.mapreduce.am.command-opts="-Xmx384m" \
-  -u 'jdbc:hive2://localhost:10000/default' \
+  -u 'jdbc:hive2://<hostname>:10000/default' \
   -n hadoop
 ```
 
@@ -116,6 +116,10 @@ CREATE TABLE t1 (
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '\t'
 STORED AS TEXTFILE;
+
+set mapreduce.map.memory.mb=256;
+set mapreduce.reduce.memory.mb=256;
+set yarn.app.mapreduce.am.resource.mb=256;
 
 INSERT INTO t1 VALUES (1,'a'),(2,'b');
 
