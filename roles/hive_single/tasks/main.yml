@@ -24,6 +24,27 @@
     enabled: true
     state: started
 
+
+- name: Set listen_addresses to '*'
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/16/main/postgresql.conf
+    regexp: '^#?listen_addresses'
+    line: "listen_addresses = '*'"
+    state: present
+
+- name: Allow Hive Metastore access in pg_hba.conf
+  lineinfile:
+    path: /etc/postgresql/16/main/pg_hba.conf
+    line: "host   metastore   hive   {{ ansible_host }}/32   md5"
+    regexp: '^host\s+metastore\s+hive\s+{{ ansible_host }}\/32\s+md5$'
+    state: present
+    insertafter: EOF
+
+- name: Always restart postgresql after pg_hba.conf update
+  ansible.builtin.systemd:
+    name: postgresql
+    state: restarted
+
 - name: Create metastore user
   community.postgresql.postgresql_user:
     name: "{{ metastore_user }}"
@@ -90,6 +111,8 @@
   ansible.builtin.command: "/usr/lib/hive/bin/schematool -dbType postgres -initSchema"
   args:
     creates: "/var/lib/hive/.schema_inited"
+  register: schematool_result
+  failed_when: schematool_result.rc != 0 and 'already exists' not in schematool_result.stderr
 
 - name: Create schema init marker
   ansible.builtin.file:
@@ -98,6 +121,7 @@
     owner: "{{ hadoop_user }}"
     group: "{{ hadoop_group }}"
     mode: "0644"
+  when: schematool_result is not skipped and (schematool_result.rc == 0 or 'already exists' in schematool_result.stderr)
 
 - name: Write /etc/default/hive
   ansible.builtin.copy:

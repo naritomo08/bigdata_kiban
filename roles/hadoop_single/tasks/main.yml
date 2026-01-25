@@ -151,11 +151,17 @@
   ansible.builtin.systemd:
     daemon_reload: true
 
+- name: Check if NameNode PID file exists
+  ansible.builtin.stat:
+    path: /tmp/hadoop-hadoop-namenode.pid
+  register: namenode_pidfile
+
 - name: Format NameNode (only once)
   become_user: "{{ hadoop_user }}"
   ansible.builtin.command: "hdfs namenode -format -nonInteractive"
   args:
     creates: "{{ hdfs_workdir }}/current/VERSION"
+  when: not namenode_pidfile.stat.exists
 
 - name: Enable & start HDFS
   ansible.builtin.systemd:
@@ -168,7 +174,7 @@
 
 - name: Wait for NameNode RPC port 9000
   ansible.builtin.wait_for:
-    host: 127.0.0.1
+    host: "{{ inventory_hostname }}"
     port: 9000
     delay: 2
     timeout: 120

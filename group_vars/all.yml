@@ -62,7 +62,7 @@ zeppelin_java_home: /usr/lib/jvm/java-11-openjdk-amd64
 zeppelin_user: zeppelin
 zeppelin_home: /opt/zeppelin
 
-zeppelin_version: "0.10.1"
+zeppelin_version: "0.12.0"
 zeppelin_tgz: "zeppelin-{{ zeppelin_version }}-bin-all.tgz"
 zeppelin_url: "https://dlcdn.apache.org/zeppelin/zeppelin-{{ zeppelin_version }}/{{ zeppelin_tgz }}"
 
